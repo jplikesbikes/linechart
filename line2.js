@@ -82,36 +82,29 @@ d3.chart('dv-line', {
 					labelSizer.append('text').attr('dx', -300).attr('class', 'linelabel').text(line.label);
 				});
 
-				var labelBBox = labelSizer[0][0].getBBox();
-				var labelPadding = labelBBox.width;
-				labelHeight = labelBBox.height;
-				labelSizer.remove();
-
-				var margins = {top: 10, bottom: 0, left: 5, right: labelPadding - 5};
-
-
-
 				//Configure Y axis
-				var yMarks = [];
-				_.forEach(lineData, function (line)
-				{
-					_.forEach(line.marks, function (mark)
+				var yMarks = _.flatMap(lineData, function (line){
+					return _.map(line.marks, function (mark)
 					{
-						yMarks.push(mark.y0 ? mark.y + mark.y0 : mark.y);
+						return mark.y + (mark.y0 || 0);
 					});
 				});
 
 				minYVal = _.min(yMarks);
-				maxYVal = _.max(yMarks); // + minYVal;
+				maxYVal = _.max(yMarks);
 				yAxis.scale().domain([maxYVal, minYVal]);
 
 				//Pass it to axis helper to move it into place
+				var labelBBox = labelSizer[0][0].getBBox();
+				var labelPadding = labelBBox.width;
+				labelHeight = labelBBox.height;
+				labelSizer.remove();
 				var pad = {top: 0, bottom: 5, left: 0, right: 0};
+				var margins = {top: 10, bottom: 0, left: 5, right: labelPadding - 5};
 				drawingSize = AxisHelper.drawAxis([xAxis, yAxis], drawing, self._width, self._height, pad, margins);
 
 				//Gridlines
 				gridlineChart.draw([{axis: yAxis, drawingPos: drawingSize}]);
-
 
 				return this.selectAll('g.lines').data(lineData);
 			},
@@ -127,7 +120,6 @@ d3.chart('dv-line', {
 				{
 					var pathFunction = self._chart.stackOffset ? area : line;
 
-
 					this.select('text')
 						.text(function (l){ return l.label; })
 						.attr('x', xAxis.scale()(xAxis.scale().domain()[1]))
@@ -139,18 +131,17 @@ d3.chart('dv-line', {
 						})
 						.attr('class', 'linelabel');
 
-					var lineSelection = this.select('path');
-					lineSelection
-							.attr('stroke', function (l)
-							{
-								return l === '' ? 'steelblue' : lineColor(l.label);
-							})
-							.attr('stroke-width', '2px')
-							.attr('fill', 'none')
-							.attr('d', function (l)
-							{
-								return pathFunction(l.marks);
-							});
+					this.select('path')
+						.attr('stroke', function (l)
+						{
+							return l === '' ? 'steelblue' : lineColor(l.label);
+						})
+						.attr('stroke-width', '2px')
+						.attr('fill', 'none')
+						.attr('d', function (l)
+						{
+							return pathFunction(l.marks);
+						});
 
 					return this;
 				},
