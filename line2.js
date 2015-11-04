@@ -65,9 +65,10 @@ d3.chart('dv-line', {
 			{
 
 				var lineData = getLineData(dataIn);
-				if (self._chart.lineType === 'stack')
+				if (self._chart.stackOffset)
 				{
-					lineData = stackLayout.offset(self._chart.stackType)(lineData);
+					lineData = stackLayout.offset(self._chart.stackOffset)(lineData);
+					// @todo: also need to do a missing value strategy here
 				}
 
 				xAxis.scale().domain([new Date(dataIn.stats.min), new Date(dataIn.stats.max)]);
@@ -111,9 +112,6 @@ d3.chart('dv-line', {
 				//Gridlines
 				gridlineChart.draw([{axis: yAxis, drawingPos: drawingSize}]);
 
-				//reset brush
-//                    brush.draw(drawingSize);
-
 
 				return this.selectAll('g.lines').data(lineData);
 			},
@@ -127,7 +125,7 @@ d3.chart('dv-line', {
 			events: {
 				'merge:transition': function ()
 				{
-					var pathFunction = self._chart.lineType === 'line' ? line : area;
+					var pathFunction = self._chart.stackOffset ? area : line;
 
 
 					this.select('text')

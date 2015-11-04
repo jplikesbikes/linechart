@@ -9,7 +9,7 @@
 	<script type="text/javascript" src="./axishelper.js"></script>
 	<script type="text/javascript" src="./gridlines.js"></script>
 	<script type="text/javascript" src="line2.js"></script>
-	<script type="text/javascript" src="ts.js"></script>
+	<script type="text/javascript" src="test.js"></script>
 	<style>
 		/* Axis styles */
 		.axis>path, .axis>line {
@@ -163,10 +163,10 @@
 		svg.attr('height', '300px');
 
 		var config = {
-			stackType: 'zero',
+//			stackOffset: 'zero',
 			title: 'My line chart',
 			size: {},
-			lineType: 'stack', // line or stack
+// not used in new code			lineType: 'stack', // line or stack
 			valueLabel: 'Opening Price',
 			mode: 'explore',
 			xAxisLabel: 'Opening balance'
