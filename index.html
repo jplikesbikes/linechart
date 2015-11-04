@@ -137,7 +137,7 @@
 	<div>
 		Stack offset:
 		<button id="wiggle">Area - wiggle</button>
-		<button id="silhoutte">Area - silhoutte</button>
+		<button id="silhouette">Area - silhouette</button>
 		<button id="expand">Area - expand</button>
 		<button id="zero">Area - zero</button>
 		<button id="none">Line - None</button>
@@ -163,7 +163,7 @@
 		svg.attr('height', '300px');
 
 		var config = {
-//			stackOffset: 'zero',
+			stackOffset: 'zero',
 			title: 'My line chart',
 			size: {},
 // not used in new code			lineType: 'stack', // line or stack
@@ -180,22 +180,32 @@
 
 		d3.select('#wiggle').on('click', function(){
 			console.log('wiggle');
+			config.stackOffset = 'wiggle';
+			lineChart.config(config);
 			lineChart.drawChart(tsData);
 		});
-		d3.select('#silhoutte').on('click', function(){
-			console.log('silhoutte');
+		d3.select('#silhouette').on('click', function(){
+			console.log('silhouette');
+			config.stackOffset = 'silhouette';
+			lineChart.config(config);
 			lineChart.drawChart(tsData);
 		});
 		d3.select('#expand').on('click', function(){
 			console.log('expand');
+			config.stackOffset = 'expand';
+			lineChart.config(config);
 			lineChart.drawChart(tsData);
 		});
 		d3.select('#zero').on('click', function(){
 			console.log('zero');
+			config.stackOffset = 'zero';
+			lineChart.config(config);
 			lineChart.drawChart(tsData);
 		});
 		d3.select('#none').on('click', function(){
 			console.log('none');
+			config.stackOffset = undefined;
+			lineChart.config(config);
 			lineChart.drawChart(tsData);
 		});
 

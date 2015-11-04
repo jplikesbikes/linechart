@@ -137,7 +137,10 @@ d3.chart('dv-line', {
 							return l === '' ? 'steelblue' : lineColor(l.label);
 						})
 						.attr('stroke-width', '2px')
-						.attr('fill', 'none')
+						.attr('fill', function (l)
+						{
+							return !!self._chart.stackOffset ? lineColor(l.label) : 'none';
+						})
 						.attr('d', function (l)
 						{
 							return pathFunction(l.marks);
