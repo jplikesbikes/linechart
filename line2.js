@@ -63,6 +63,21 @@ d3.chart('dv-line', {
 			});
 		}
 
+		/**
+		 * @param {Array[]} lines - [value, time] sorted
+		 */
+		//function uniqueTimes(lines){
+		//	lines.map();
+		//	while(false){}
+		//}
+
+		//d3.select(svg.node().parentNode).on('mousemove', function(){
+		//lines.on('mousemove', function(d,i){
+		//	console.log(d,i)
+			//console.log('m',[d3.event.x, d3.event.y]);
+			//console.log('g',d3.mouse(lines.node()));
+		//});
+
 		//Create a layer that is responsible for each mark
 		self.layer('marks', lines, {
 			dataBind: function (dataIn)
@@ -118,6 +133,11 @@ d3.chart('dv-line', {
 						.attr('text-anchor', 'start')
 						.attr('dy', 5)
 						.attr('dx', 5);
+				lineGrp.on('mousemove', function(d,i){
+					console.log(d,i)
+					//console.log('m',[d3.event.x, d3.event.y]);
+					//console.log('g',d3.mouse(lines.node()));
+				});
 				return lineGrp;
 			},
 			events: {
