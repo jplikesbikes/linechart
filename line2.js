@@ -1,6 +1,6 @@
 'use strict';
 
-_.mixin({ 'flatMap': _.compose(_.flatten, _.map) });
+var flatMap = _.compose(_.flatten, _.map);
 d3.chart('dv-line', {
 	initialize: function ()
 	{
@@ -85,7 +85,7 @@ d3.chart('dv-line', {
 				});
 
 				//Configure Y axis
-				var yMarks = _.flatMap(lineData, function (line){
+				var yMarks =flatMap(lineData, function (line){
 					return _.map(line.marks, function (mark)
 					{
 						return mark.y + (mark.y0 || 0);
