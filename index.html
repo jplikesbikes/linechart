@@ -12,6 +12,10 @@
 	<script type="text/javascript" src="testComposition.js"></script>
 	<script type="text/javascript" src="test.js"></script>
 	<style>
+		svg {
+			border: 1px solid black;
+		}
+
 		/* Axis styles */
 		.axis>path, .axis>line {
 			fill: none;
@@ -166,6 +170,7 @@
 		svg.attr('preserveAspectRatio', 'xMidYMid meet');
 		svg.attr('width', '75%');
 		svg.attr('height', '300px');
+		svg.attr('viewBox', '0 0 ' + 1000 + ' ' + 300);
 
 		var config = {
 			stackOffset: 'zero',

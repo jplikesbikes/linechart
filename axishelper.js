@@ -8,7 +8,7 @@
 				bottom: 0,
 				right: 0
 			} : padding;
-			margin = !margin ? {top: 0, left: 2, bottom: 5, right: 0} : margin;         //Margin support is busted. the drawing area requires an additional transform to account for the margins
+			margin = !margin ? {top: 0, left: 0, bottom: 0, right: 0} : margin;         //Margin support is busted. the drawing area requires an additional transform to account for the margins
 
 			var w = width - margin.left - margin.right;
 			var h = height - margin.top - margin.bottom;

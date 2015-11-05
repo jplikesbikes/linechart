@@ -102,7 +102,7 @@ d3.chart('dv-line', {
 				labelHeight = labelBBox.height;
 				labelSizer.remove();
 				var pad = {top: 0, bottom: 5, left: 0, right: 0};
-				var margins = {top: 10, bottom: 0, left: 5, right: labelPadding - 5};
+				var margins = {top: 0, bottom: 0, left: 5, right: labelPadding + 10};
 				drawingSize = AxisHelper.drawAxis([xAxis, yAxis], drawing, self._width, self._height, pad, margins);
 
 				//Gridlines
@@ -116,7 +116,8 @@ d3.chart('dv-line', {
 				lineGrp.append('path').classed('line', true);
 				lineGrp.append('text').classed('linelabel', true)
 						.attr('text-anchor', 'start')
-						.attr('dy', 5);
+						.attr('dy', 5)
+						.attr('dx', 5);
 				return lineGrp;
 			},
 			events: {
