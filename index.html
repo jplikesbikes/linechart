@@ -9,6 +9,7 @@
 	<script type="text/javascript" src="./axishelper.js"></script>
 	<script type="text/javascript" src="./gridlines.js"></script>
 	<script type="text/javascript" src="line2.js"></script>
+	<script type="text/javascript" src="testComposition.js"></script>
 	<script type="text/javascript" src="test.js"></script>
 	<style>
 		/* Axis styles */
@@ -154,6 +155,7 @@
 
 	<div id="chart"></div>
 
+	<svg id="test2" width="600px" height="300px" style="border: 1px solid grey"></svg>
 
 	<script type="text/javascript">
 
@@ -230,6 +232,12 @@
 			console.log('indexByLine');
 			lineChart.drawChart(tsData);
 		});
+
+		setInterval(function(){
+			var data = [['a'],['b'],['c']];
+			data.forEach((d)=>d[1]=Math.random()*6);
+			t(data);
+		},2000);
 
 	</script>
 </body>
