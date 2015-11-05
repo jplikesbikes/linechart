@@ -49,7 +49,7 @@ var l = _.curry(function (x, y, selection) {
 
 
 
-function t(data){
+function t0(data){
 	var svg = d3.select('#test2');
 	var domain = d3.extent(data.map((d)=>d[1]));
 	var x = d3.scale.linear().range([0,600]).domain([0, 6]);
@@ -58,4 +58,41 @@ function t(data){
 		.datum(data)
 		.call(g(x))
 		.call(l(x,y));
+}
+
+function t1(data){
+	var svg = d3.select('#test2');
+	var domain = d3.extent(data.map((d)=>d[1]));
+	var x = d3.scale.linear().range([0,600]).domain([0, 6]);
+	var y = d3.scale.linear().range([0,300]).domain([0, 6]);
+
+	var layerFns = [g(x), l(x,y)];
+	var layers = svg.selectAll('g')
+			.data(layerFns);
+
+	layers.enter().append('g');
+
+	layers.each(function(d){
+		d3.select(this).datum(data).call(d);
+	});
+
+	layers.exit().remove();
+}
+
+function t(data){
+	var svg = d3.select('#test2');
+	var domain = d3.extent(data.map((d)=>d[1]));
+	var x = d3.scale.linear().range([0,600]).domain([0, 6]);
+	var y = d3.scale.linear().range([0,300]).domain([0, 6]);
+
+	var grid = svg.selectAll('g.grid').data([data]);
+	grid.enter().append('g').classed('grid',true);
+	grid.call(g(x));
+	grid.exit().remove();
+
+	var circles = svg.selectAll('g.circles').data([data]);
+	circles.enter().append('g').classed('circles',true);
+	circles.call(l(x,y));
+	circles.exit().remove();
+
 }
