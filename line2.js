@@ -18,6 +18,10 @@ d3.chart('dv-line', {
 		yAxis.orient('left');
 
 		var lineColor = d3.scale.category20c();
+		function applyLineColor(d)
+		{
+			return lineColor(d.label);
+		}
 
 		svg.classed('line', true);
 		var drawing = svg.append('g').classed('base', true);
@@ -60,7 +64,7 @@ d3.chart('dv-line', {
 		}
 
 		//Create a layer that is responsible for each mark
-		self.layer('lines', lines, {
+		self.layer('marks', lines, {
 			dataBind: function (dataIn)
 			{
 
@@ -68,11 +72,9 @@ d3.chart('dv-line', {
 				if (self._chart.stackOffset)
 				{
 					lineData = stackLayout.offset(self._chart.stackOffset)(lineData);
-					// @todo: also need to do a missing value strategy here
 				}
 
 				xAxis.scale().domain([new Date(dataIn.stats.min), new Date(dataIn.stats.max)]);
-				xAxis.scale().nice();
 				xAxis.label = self._chart.xAxisLabel;
 
 				//Determine space for labels
@@ -106,13 +108,15 @@ d3.chart('dv-line', {
 				//Gridlines
 				gridlineChart.draw([{axis: yAxis, drawingPos: drawingSize}]);
 
-				return this.selectAll('g.lines').data(lineData);
+				return this.selectAll('g.marks').data(lineData);
 			},
 			insert: function ()
 			{
-				var lineGrp = this.append('g').classed('lines', true);
+				var lineGrp = this.append('g').classed('marks', true);
 				lineGrp.append('path').classed('line', true);
-				lineGrp.append('text').classed('linelabel', true).attr('text-anchor', 'start');
+				lineGrp.append('text').classed('linelabel', true)
+						.attr('text-anchor', 'start')
+						.attr('dy', 5);
 				return lineGrp;
 			},
 			events: {
@@ -120,31 +124,27 @@ d3.chart('dv-line', {
 				{
 					var pathFunction = self._chart.stackOffset ? area : line;
 
+					var labelX = xAxis.scale().range()[1];
+
 					this.select('text')
 						.text(function (l){ return l.label; })
-						.attr('x', xAxis.scale()(xAxis.scale().domain()[1]))
-						.attr('dy', 5)
+						.attr('x', labelX)
 						.attr('y', function (l)
 						{
 							var yVal = l.marks[l.marks.length - 1];
 							return yAxis.scale()(yVal.y0 ? yVal.y / 2 + yVal.y0 : yVal.y);
 						})
-						.attr('class', 'linelabel');
+						.attr('class', 'linelabel '+ (self._chart.stackOffset ? 'area' : 'line'));
+
 
 					this.select('path')
-						.attr('stroke', function (l)
-						{
-							return l === '' ? 'steelblue' : lineColor(l.label);
-						})
-						.attr('stroke-width', '2px')
-						.attr('fill', function (l)
-						{
-							return !!self._chart.stackOffset ? lineColor(l.label) : 'none';
-						})
+						.attr('stroke', applyLineColor)
+						.attr('fill', applyLineColor)
 						.attr('d', function (l)
 						{
 							return pathFunction(l.marks);
-						});
+						})
+						.attr('class', self._chart.stackOffset ? 'area' : 'line');
 
 					return this;
 				},
