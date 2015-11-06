@@ -1,57 +1,5 @@
 'use strict';
 
-/**
- * @param {Object} a - point 1
- * @param {Object} b - point 2
- * @param {String[]} d - dimensions to compare
- * @return {number} - distance
- */
-var squareEuclideanDistanceObject = function(a, b, d){
-	var sum = 0;
-	for (var n=0; n < d.length; n++) {
-		sum += Math.pow( a[d[n]] - b[d[n]], 2);
-	}
-	return sum;
-};
-
-/**
- * @param {Object} a - point 1
- * @param {Object} b - point 2
- * @param {String[]} d - dimensions to compare
- * @return {number} - distance
- */
-var squareEuclideanDistanceObject = function(a, b, d){
-	return Math.sqrt(squareEuclideanDistanceObject(a, b, d));
-};
-
-/**
- * @param {Object|Array} point
- * @param {Object[]|Array[]} data
- * @param {String[]|Number[]} dims - dimensions to compare
- * @return {Object|Array} - closest
- */
-var findClosestMarkMultiDimension = function(point, data, dims){
-	var min = undefined;
-	var minDist = Math.POSITIVE_INFINITY;
-	for(var i=0; i<data.length; i++){
-		var dist = squareEuclideanDistanceObject(point, data[i], dims);
-		if(dist<minDist){
-			min = data[i];
-			minDist = dist;
-		}
-	}
-};
-
-/**
- *
- * @param {String|Number} point
- * @param {Object[]|Array[]} data - sorted by dim
- * @param {String} dim - how to get the value from the dim
- */
-var findClosestMarkBinarySearch = function(value, data, dim){
-
-};
-
 var applyToData = _.curry(function(fn, data){
 	return fn(data[1])
 });

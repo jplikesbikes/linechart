@@ -4,8 +4,9 @@
 	<meta charset="UTF-8">
 	<title>Chart test</title>
 	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/3.10.1/lodash.min.js"></script>
-	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.6/d3.min.js"></script>
+	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.6/d3.js"></script>
 	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/d3.chart/0.2.1/d3.chart.min.js"></script>
+	<script type="text/javascript" src="./utils.js"></script>
 	<script type="text/javascript" src="./timeFunctions.js"></script>
 	<script type="text/javascript" src="./axishelper.js"></script>
 	<script type="text/javascript" src="./gridlines.js"></script>
@@ -18,7 +19,7 @@
 		}
 
 		/* Axis styles */
-		.axis>path, .axis>line {
+		.axis path, .axis line {
 			fill: none;
 			stroke: #ccc;
 			shape-rendering: crispEdges;

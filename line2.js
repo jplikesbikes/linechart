@@ -48,6 +48,15 @@ d3.chart('dv-line', {
 					return d.marks;
 				});
 
+		var timeThresholdScale = d3.scale.threshold();
+		function mouseF(){
+			var cursorAt = xAxis.scale().invert(d3.mouse(this)[0]).getTime();
+			var closestTime = timeThresholdScale(cursorAt);
+			console.log(closestTime);
+		}
+
+		var m = giveMouseMove(xAxis.scale(), yAxis.scale(), mouseF);
+
 		function getLineData(dataIn){
 			return dataIn.marks.map(function(mark){
 				var points = mark[mark.length-1];
@@ -89,8 +98,11 @@ d3.chart('dv-line', {
 					lineData = stackLayout.offset(self._chart.stackOffset)(lineData);
 				}
 
-				xAxis.scale().domain([new Date(dataIn.stats.min), new Date(dataIn.stats.max)]);
 				xAxis.label = self._chart.xAxisLabel;
+				xAxis.scale().domain([new Date(dataIn.stats.min), new Date(dataIn.stats.max)]);
+
+				var times = _.pluck(lineData[0].marks, 'x');
+				timeThresholdScale.domain(midPoints(times)).range(times);
 
 				//Determine space for labels
 				var labelSizer = lines.append('g').classed('linegrp', true);
@@ -133,16 +145,13 @@ d3.chart('dv-line', {
 						.attr('text-anchor', 'start')
 						.attr('dy', 5)
 						.attr('dx', 5);
-				lineGrp.on('mousemove', function(d,i){
-					console.log(d,i)
-					//console.log('m',[d3.event.x, d3.event.y]);
-					//console.log('g',d3.mouse(lines.node()));
-				});
 				return lineGrp;
 			},
 			events: {
 				'merge:transition': function ()
 				{
+
+					m(drawing.select('.all-axis .bottom'));
 					var pathFunction = self._chart.stackOffset ? area : line;
 
 					var labelX = xAxis.scale().range()[1];
