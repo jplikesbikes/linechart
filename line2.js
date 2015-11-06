@@ -48,11 +48,42 @@ d3.chart('dv-line', {
 					return d.marks;
 				});
 
+		var draw = function(selection){
+			var pathFunction = self._chart.stackOffset ? area : line;
+			var labelX = xAxis.scale().range()[1];
+			selection.select('text')
+					.text(function (l){
+						return l.label;
+					})
+					.attr('x', labelX)
+					.attr('y', function (l)
+					{
+						var yVal = l.marks[l.marks.length - 1];
+						return yAxis.scale()(yVal.y0 ? yVal.y / 2 + yVal.y0 : yVal.y);
+					})
+					.attr('class', 'linelabel '+ (self._chart.stackOffset ? 'area' : 'line'));
+
+			selection.select('path')
+					.attr('stroke', applyLineColor)
+					.attr('fill', applyLineColor)
+					.attr('d', function (l)
+					{
+						return pathFunction(l.marks);
+					})
+					.attr('class', self._chart.stackOffset ? 'area' : 'line');
+		};
+
 		var timeThresholdScale = d3.scale.threshold();
 		function mouseF(){
 			var cursorAt = xAxis.scale().invert(d3.mouse(this)[0]).getTime();
-			var closestTime = timeThresholdScale(cursorAt);
-			console.log(closestTime);
+			var closestTime = timeThresholdScale(cursorAt).getTime();
+			var d = _.cloneDeep(self.baseData);
+			d.marks.forEach(function(mark){
+				mark[1] = relativeToMoment(closestTime, [mark[1]])[0];
+			});
+			var lineData = databind(d);
+
+			lines.datum(lineData).selectAll('g.marks').data(_.identity).call(draw);
 		}
 
 		var m = giveMouseMove(xAxis.scale(), yAxis.scale(), mouseF);
@@ -87,54 +118,58 @@ d3.chart('dv-line', {
 			//console.log('g',d3.mouse(lines.node()));
 		//});
 
+		var databind = function(dataIn){
+			var lineData = getLineData(dataIn);
+			if (self._chart.stackOffset)
+			{
+				lineData = stackLayout.offset(self._chart.stackOffset)(lineData);
+			}
+
+			xAxis.label = self._chart.xAxisLabel;
+			xAxis.scale().domain([new Date(dataIn.stats.min), new Date(dataIn.stats.max)]);
+
+			var times = _.pluck(lineData[0].marks, 'x');
+			timeThresholdScale.domain(midPoints(times)).range(times);
+
+			//Determine space for labels
+			var labelSizer = lines.append('g').classed('linegrp', true);
+			_.forEach(lineData, function (line)
+			{
+				labelSizer.append('text').attr('dx', -300).attr('class', 'linelabel').text(line.label);
+			});
+
+			//Configure Y axis
+			var yMarks =flatMap(lineData, function (line){
+				return _.map(line.marks, function (mark)
+				{
+					return mark.y + (mark.y0 || 0);
+				});
+			});
+
+			minYVal = _.min(yMarks);
+			maxYVal = _.max(yMarks);
+			yAxis.scale().domain([maxYVal, minYVal]);
+
+			//Pass it to axis helper to move it into place
+			var labelBBox = labelSizer[0][0].getBBox();
+			var labelPadding = labelBBox.width;
+			labelHeight = labelBBox.height;
+			labelSizer.remove();
+			var pad = {top: 0, bottom: 5, left: 0, right: 0};
+			var margins = {top: 0, bottom: 0, left: 5, right: labelPadding + 10};
+			drawingSize = AxisHelper.drawAxis([xAxis, yAxis], drawing, self._width, self._height, pad, margins);
+
+			//Gridlines
+			gridlineChart.draw([{axis: yAxis, drawingPos: drawingSize}]);
+			return lineData;
+		};
+
 		//Create a layer that is responsible for each mark
 		self.layer('marks', lines, {
 			dataBind: function (dataIn)
 			{
-
-				var lineData = getLineData(dataIn);
-				if (self._chart.stackOffset)
-				{
-					lineData = stackLayout.offset(self._chart.stackOffset)(lineData);
-				}
-
-				xAxis.label = self._chart.xAxisLabel;
-				xAxis.scale().domain([new Date(dataIn.stats.min), new Date(dataIn.stats.max)]);
-
-				var times = _.pluck(lineData[0].marks, 'x');
-				timeThresholdScale.domain(midPoints(times)).range(times);
-
-				//Determine space for labels
-				var labelSizer = lines.append('g').classed('linegrp', true);
-				_.forEach(lineData, function (line)
-				{
-					labelSizer.append('text').attr('dx', -300).attr('class', 'linelabel').text(line.label);
-				});
-
-				//Configure Y axis
-				var yMarks =flatMap(lineData, function (line){
-					return _.map(line.marks, function (mark)
-					{
-						return mark.y + (mark.y0 || 0);
-					});
-				});
-
-				minYVal = _.min(yMarks);
-				maxYVal = _.max(yMarks);
-				yAxis.scale().domain([maxYVal, minYVal]);
-
-				//Pass it to axis helper to move it into place
-				var labelBBox = labelSizer[0][0].getBBox();
-				var labelPadding = labelBBox.width;
-				labelHeight = labelBBox.height;
-				labelSizer.remove();
-				var pad = {top: 0, bottom: 5, left: 0, right: 0};
-				var margins = {top: 0, bottom: 0, left: 5, right: labelPadding + 10};
-				drawingSize = AxisHelper.drawAxis([xAxis, yAxis], drawing, self._width, self._height, pad, margins);
-
-				//Gridlines
-				gridlineChart.draw([{axis: yAxis, drawingPos: drawingSize}]);
-
+				self.baseData = dataIn;
+				var lineData = databind(dataIn);
 				return this.selectAll('g.marks').data(lineData);
 			},
 			insert: function ()
@@ -152,29 +187,9 @@ d3.chart('dv-line', {
 				{
 
 					m(drawing.select('.all-axis .bottom'));
-					var pathFunction = self._chart.stackOffset ? area : line;
-
-					var labelX = xAxis.scale().range()[1];
-
-					this.select('text')
-						.text(function (l){ return l.label; })
-						.attr('x', labelX)
-						.attr('y', function (l)
-						{
-							var yVal = l.marks[l.marks.length - 1];
-							return yAxis.scale()(yVal.y0 ? yVal.y / 2 + yVal.y0 : yVal.y);
-						})
-						.attr('class', 'linelabel '+ (self._chart.stackOffset ? 'area' : 'line'));
 
 
-					this.select('path')
-						.attr('stroke', applyLineColor)
-						.attr('fill', applyLineColor)
-						.attr('d', function (l)
-						{
-							return pathFunction(l.marks);
-						})
-						.attr('class', self._chart.stackOffset ? 'area' : 'line');
+					draw(this);
 
 					return this;
 				},
