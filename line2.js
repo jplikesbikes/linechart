@@ -23,11 +23,31 @@ d3.chart('dv-line', {
 			return lineColor(d.label);
 		}
 
+		var drawTimeIndex = _.curry(function(x, y, selection){
+			var lines = selection.selectAll('line.time-index').data(_.identity);
+
+			// enter
+			lines.enter().append('line').classed('time-index', true);
+
+			// enter + update
+			lines
+				.transition(500)
+				.attr('y1', y.range()[0])
+				.attr('y2', y.range()[1])
+				.attr('x1', x)
+				.attr('x2', x);
+
+			// exit
+			lines.exit().remove()
+		});
+
 		svg.classed('line', true);
 		var drawing = svg.append('g').classed('base', true);
 		var gridlineChart = drawing.chart('Gridlines');
 
 		var lines = drawing.append('g').classed('lines', true);
+
+		var timeIndexGroup = drawing.append('g').classed('time-index', true);
 
 		var drawingSize, labelHeight;
 
@@ -82,6 +102,11 @@ d3.chart('dv-line', {
 				var cursorAt = xAxis.scale().invert(d3.mouse(this)[0]).getTime();
 				var closestTime = timeThresholdScale(cursorAt).getTime();
 				if(closestTime !== lastClosestTime) {
+
+					// update the timeIndex line
+					timeIndexGroup.datum([closestTime]);
+					drawTimeIndex(xAxis.scale(), yAxis.scale(), timeIndexGroup);
+
 					lastClosestTime = closestTime;
 					var d = _.cloneDeep(self.baseData);
 					d.marks.forEach(function (mark) {
