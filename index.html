@@ -157,6 +157,7 @@
 
 	<div>
 		Chart type:
+		<button id="actual">actual</button>
 		<button id="rate">rate</button>
 		<button id="spread">spread</button>
 		<button id="indexByPointInTimeValue">index by point in time (value)</button>
@@ -175,10 +176,11 @@
 		svg.attr('viewBox', '0 0 ' + 1000 + ' ' + 300);
 
 		var config = {
-			stackOffset: 'zero',
+			stackOffset: undefined,
+			relativeToMoment: 'relativePercentToMoment', // relativeToMoment
+			relativeToTimeSeries: 'relativeToSeries',
 			title: 'My line chart',
 			size: {},
-// not used in new code			lineType: 'stack', // line or stack
 			valueLabel: 'Opening Price',
 			mode: 'explore',
 			xAxisLabel: 'Opening balance'
@@ -222,24 +224,41 @@
 		});
 
 
+		d3.select('#actual').on('click', function(){
+			console.log('actual');
+			config.relativeToMoment = undefined;
+			config.relativeToTimeSeries = undefined;
+			lineChart.config(config);
+			lineChart.drawChart(tsData);
+		});
 		d3.select('#rate').on('click', function(){
 			console.log('rate');
+			config.relativeToTimeSeries = 'relativeRateSeries';
+			lineChart.config(config);
 			lineChart.drawChart(tsData);
 		});
 		d3.select('#spread').on('click', function(){
 			console.log('spread');
+			config.relativeToTimeSeries = 'relativeRateSeries';
+			lineChart.config(config);
 			lineChart.drawChart(tsData);
 		});
 		d3.select('#indexByPointInTimeValue').on('click', function(){
 			console.log('indexByPointInTimeValue');
+			config.relativeToMoment = 'relativeToMoment';
+			lineChart.config(config);
 			lineChart.drawChart(tsData);
 		});
 		d3.select('#indexByPointInTimePercent').on('click', function(){
 			console.log('indexByPointInTimePercent');
+			config.relativeToMoment = 'relativePercentToMoment';
+			lineChart.config(config);
 			lineChart.drawChart(tsData);
 		});
 		d3.select('#indexByLine').on('click', function(){
 			console.log('indexByLine');
+			config.relativeToTimeSeries = 'relativeToSeries';
+			lineChart.config(config);
 			lineChart.drawChart(tsData);
 		});
 

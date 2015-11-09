@@ -52,6 +52,7 @@ d3.chart('dv-line', {
 			var pathFunction = self._chart.stackOffset ? area : line;
 			var labelX = xAxis.scale().range()[1];
 			selection.select('text')
+					.transition()
 					.text(function (l){
 						return l.label;
 					})
@@ -64,6 +65,7 @@ d3.chart('dv-line', {
 					.attr('class', 'linelabel '+ (self._chart.stackOffset ? 'area' : 'line'));
 
 			selection.select('path')
+					.transition()
 					.attr('stroke', applyLineColor)
 					.attr('fill', applyLineColor)
 					.attr('d', function (l)
@@ -73,17 +75,23 @@ d3.chart('dv-line', {
 					.attr('class', self._chart.stackOffset ? 'area' : 'line');
 		};
 
+		var lastClosestTime;
 		var timeThresholdScale = d3.scale.threshold();
 		function mouseF(){
-			var cursorAt = xAxis.scale().invert(d3.mouse(this)[0]).getTime();
-			var closestTime = timeThresholdScale(cursorAt).getTime();
-			var d = _.cloneDeep(self.baseData);
-			d.marks.forEach(function(mark){
-				mark[1] = relativeToMoment(closestTime, [mark[1]])[0];
-			});
-			var lineData = databind(d);
+			if(self._chart.relativeToMoment) {
+				var cursorAt = xAxis.scale().invert(d3.mouse(this)[0]).getTime();
+				var closestTime = timeThresholdScale(cursorAt).getTime();
+				if(closestTime !== lastClosestTime) {
+					lastClosestTime = closestTime;
+					var d = _.cloneDeep(self.baseData);
+					d.marks.forEach(function (mark) {
+						mark[1] = timeFunctions[self._chart.relativeToMoment](closestTime, [mark[1]])[0];
+					});
+					var lineData = databind(d);
 
-			lines.datum(lineData).selectAll('g.marks').data(_.identity).call(draw);
+					lines.datum(lineData).selectAll('g.marks').data(_.identity).call(draw);
+				}
+			}
 		}
 
 		var m = giveMouseMove(xAxis.scale(), yAxis.scale(), mouseF);
@@ -102,21 +110,6 @@ d3.chart('dv-line', {
 				}
 			});
 		}
-
-		/**
-		 * @param {Array[]} lines - [value, time] sorted
-		 */
-		//function uniqueTimes(lines){
-		//	lines.map();
-		//	while(false){}
-		//}
-
-		//d3.select(svg.node().parentNode).on('mousemove', function(){
-		//lines.on('mousemove', function(d,i){
-		//	console.log(d,i)
-			//console.log('m',[d3.event.x, d3.event.y]);
-			//console.log('g',d3.mouse(lines.node()));
-		//});
 
 		var databind = function(dataIn){
 			var lineData = getLineData(dataIn);
@@ -164,6 +157,20 @@ d3.chart('dv-line', {
 			return lineData;
 		};
 
+		function selectLine(d, i){
+			if(self._chart.relativeToTimeSeries) {
+
+				var d = _.cloneDeep(self.baseData);
+				var ts = d.marks[i][1];
+				d.marks.forEach(function (mark) {
+					mark[1] = timeFunctions[self._chart.relativeToTimeSeries](ts, [mark[1]])[0];
+				});
+				var lineData = databind(d);
+
+				lines.datum(lineData).selectAll('g.marks').data(_.identity).call(draw);
+			}
+		}
+
 		//Create a layer that is responsible for each mark
 		self.layer('marks', lines, {
 			dataBind: function (dataIn)
@@ -175,11 +182,14 @@ d3.chart('dv-line', {
 			insert: function ()
 			{
 				var lineGrp = this.append('g').classed('marks', true);
-				lineGrp.append('path').classed('line', true);
+				lineGrp.append('path').classed('line', true)
+						.attr('stroke', applyLineColor)
+						.attr('fill', applyLineColor);
 				lineGrp.append('text').classed('linelabel', true)
 						.attr('text-anchor', 'start')
 						.attr('dy', 5)
-						.attr('dx', 5);
+						.attr('dx', 5)
+						.on('click', selectLine);
 				return lineGrp;
 			},
 			events: {
