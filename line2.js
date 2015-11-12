@@ -134,8 +134,10 @@ d3.chart('dv-line', {
 					return x(d.x);
 				})
 				.attr('cy', function(d){
-					return y(d.y);
+					return y(d.y + (d.y0 || 0));
 				});
+
+			circles.exit().remove();
 		});
 
 		var mt = giveMouseMove(xAxis.scale(), yAxis.scale(), mouseForTime);
@@ -147,12 +149,15 @@ d3.chart('dv-line', {
 			if (closestTime !== lastClosestTimeDot) {
 				lastClosestTimeDot = closestTime;
 				var lineData = lines.selectAll('g.marks').data();
-				var dotsData = lineData.map(function(d){
+				var dotsData = _.reduce(lineData, function(agg, d){
 					var idx = _.findIndex(d.marks, function(m){ return m.x.getTime() === closestTime });
-					var c = _.cloneDeep(d.marks[idx]);
-					c.label = d.label;
-					return c;
-				});
+					if(idx !== -1) {
+						var c = _.cloneDeep(d.marks[idx]);
+						c.label = d.label;
+						agg.push(c);
+					}
+					return agg;
+				}, []);
 
 				dots.datum(dotsData);
 				circles(xAxis.scale(), yAxis.scale(), dots);
@@ -185,7 +190,9 @@ d3.chart('dv-line', {
 			xAxis.label = self._chart.xAxisLabel;
 			xAxis.scale().domain([new Date(dataIn.stats.min), new Date(dataIn.stats.max)]);
 
-			var times = _.pluck(lineData[0].marks, 'x');
+			function getTime(t){ return t.getTime(); }
+			var at = _.sortBy(flatMap(lineData, function(d){ return _.pluck(d.marks, 'x')}), getTime);
+			var times = _.uniq(at, getTime, true);
 			timeThresholdScale.domain(midPoints(times)).range(times);
 
 			//Determine space for labels
