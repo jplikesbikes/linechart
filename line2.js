@@ -46,6 +46,7 @@ d3.chart('dv-line', {
 		var gridlineChart = drawing.chart('Gridlines');
 
 		var lines = drawing.append('g').classed('lines', true);
+		var dots = drawing.append('g').classed('dots', true);
 
 		var timeIndexGroup = drawing.append('g').classed('time-index', true);
 
@@ -97,7 +98,7 @@ d3.chart('dv-line', {
 
 		var lastClosestTime;
 		var timeThresholdScale = d3.scale.threshold();
-		function mouseF(){
+		function mouseForTime(){
 			if(self._chart.relativeToMoment) {
 				var cursorAt = xAxis.scale().invert(d3.mouse(this)[0]).getTime();
 				var closestTime = timeThresholdScale(cursorAt).getTime();
@@ -119,7 +120,45 @@ d3.chart('dv-line', {
 			}
 		}
 
-		var m = giveMouseMove(xAxis.scale(), yAxis.scale(), mouseF);
+		var circles = _.curry(function (x, y, selection) {
+			var circles = selection.selectAll('circle').data(_.identity);
+
+			// enter
+			circles.enter().append('circle');
+
+			// enter + update
+			circles
+				//.transition(500)
+				.attr('stroke', applyLineColor)
+				.attr('cx', function(d){
+					return x(d.x);
+				})
+				.attr('cy', function(d){
+					return y(d.y);
+				});
+		});
+
+		var mt = giveMouseMove(xAxis.scale(), yAxis.scale(), mouseForTime);
+
+		var lastClosestTimeDot;
+		function mouseDots() {
+			var cursorAt = xAxis.scale().invert(d3.mouse(this)[0]).getTime();
+			var closestTime = timeThresholdScale(cursorAt).getTime();
+			if (closestTime !== lastClosestTimeDot) {
+				lastClosestTimeDot = closestTime;
+				var lineData = lines.selectAll('g.marks').data();
+				var dotsData = lineData.map(function(d){
+					var idx = _.findIndex(d.marks, function(m){ return m.x.getTime() === closestTime });
+					var c = _.cloneDeep(d.marks[idx]);
+					c.label = d.label;
+					return c;
+				});
+
+				dots.datum(dotsData);
+				circles(xAxis.scale(), yAxis.scale(), dots);
+			}
+		}
+		var md = giveMouseMove(xAxis.scale(), yAxis.scale(), mouseDots);
 
 		function getLineData(dataIn){
 			return dataIn.marks.map(function(mark){
@@ -221,7 +260,8 @@ d3.chart('dv-line', {
 				'merge:transition': function ()
 				{
 
-					m(drawing.select('.all-axis .bottom'));
+					mt(drawing.select('.all-axis .bottom'));
+					md(dots);
 
 
 					draw(this);
